@@ -222,7 +222,7 @@ resource "aws_sns_topic" "compliance_alerts" {
 resource "aws_sns_topic_subscription" "compliance_email" {
     topic_arn = aws_sns_topic.compliance_alerts.arn
     protocol = "email"
-    endpoint = "thisisanemailillreplaceingitignoreandafilelater@gmail.com"
+    endpoint = var.alert_email
 }
 
 resource "aws_s3_bucket_versioning" "config_logs" {

@@ -1,0 +1,7 @@
+*.tfvars
+*.auto.tfvars
+secret.auto.tfvars
+
+
+# Visual Studio junk
+.vs/

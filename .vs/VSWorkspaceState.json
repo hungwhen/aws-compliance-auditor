@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\terraform"
   ],
-  "SelectedNode": "\\C:\\Users\\hung\\Source\\Repos\\aws-compliance-auditor",
+  "SelectedNode": "\\terraform\\main.tf",
   "PreviewInSolutionExplorer": false
 }
