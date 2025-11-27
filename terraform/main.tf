@@ -145,17 +145,12 @@ resource "aws_config_configuration_recorder_status" "main" {
 }
 
 #misconfigs
-
 resource "aws_config_config_rule" "s3_public_read_prohibited" {
   name = "s3-bucket-public-read-prohibited"
 
   source {
     owner             = "AWS"
     source_identifier = "S3_BUCKET_PUBLIC_READ_PROHIBITED"
-  }
-
-  tags = {
-    Frameworks = "CIS-1.2.0,NIST-AC-3,ISO-27001-A.9.1"
   }
 
   depends_on = [aws_config_configuration_recorder_status.main]
@@ -169,10 +164,6 @@ resource "aws_config_config_rule" "s3_public_write_prohibited" {
     source_identifier = "S3_BUCKET_PUBLIC_WRITE_PROHIBITED"
   }
 
-  tags = {
-    Frameworks = "CIS-1.2.0,NIST-SC-7,ISO-27001-A.13.1"
-  }
-
   depends_on = [aws_config_configuration_recorder_status.main]
 }
 
@@ -184,8 +175,8 @@ resource "aws_config_config_rule" "restricted_ssh" {
     source_identifier = "INCOMING_SSH_DISABLED"
   }
 
-  tags = {
-    Frameworks = "CIS-4.1,NIST-AC-4,ISO-27001-A.13.1"
+  scope {
+    compliance_resource_types = ["AWS::EC2::SecurityGroup"]
   }
 
   depends_on = [aws_config_configuration_recorder_status.main]
@@ -199,12 +190,104 @@ resource "aws_config_config_rule" "iam_access_keys_rotated" {
     source_identifier = "ACCESS_KEYS_ROTATED"
   }
 
-  input_parameters = jsonencode({
-    maxAccessKeyAge = 90
-  })
+  input_parameters = "{\"maxAccessKeyAge\":\"90\"}"
 
-  tags = {
-    Frameworks = "CIS-1.4,NIST-IA-5,ISO-27001-A.9.2"
+  depends_on = [aws_config_configuration_recorder_status.main]
+}
+
+resource "aws_config_config_rule" "root_account_mfa_enabled" {
+  name = "root-account-mfa-enabled"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "ROOT_ACCOUNT_MFA_ENABLED"
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
+}
+
+resource "aws_config_config_rule" "cloudtrail_enabled" {
+  name = "cloudtrail-enabled"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "CLOUD_TRAIL_ENABLED"
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
+}
+
+resource "aws_config_config_rule" "s3_encryption_enabled" {
+  name = "s3-bucket-encryption-enabled"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
+  }
+
+  scope {
+    compliance_resource_types = ["AWS::S3::Bucket"]
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
+}
+
+resource "aws_config_config_rule" "ebs_encryption_by_default" {
+  name = "ec2-ebs-encryption-by-default"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "EC2_EBS_ENCRYPTION_BY_DEFAULT"
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
+}
+
+resource "aws_config_config_rule" "rds_storage_encrypted" {
+  name = "rds-storage-encrypted"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "RDS_STORAGE_ENCRYPTED"
+  }
+
+  scope {
+    compliance_resource_types = ["AWS::RDS::DBInstance"]
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
+}
+
+resource "aws_config_config_rule" "iam_password_policy" {
+  name = "iam-password-policy"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "IAM_PASSWORD_POLICY"
+  }
+
+  input_parameters = "{\"RequireUppercaseCharacters\":\"true\",\"RequireLowercaseCharacters\":\"true\",\"RequireSymbols\":\"true\",\"RequireNumbers\":\"true\",\"MinimumPasswordLength\":\"14\",\"PasswordReusePrevention\":\"24\",\"MaxPasswordAge\":\"90\"}"
+
+  depends_on = [aws_config_configuration_recorder_status.main]
+}
+
+resource "aws_config_config_rule" "iam_user_mfa_enabled" {
+  name = "iam-user-mfa-enabled"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "IAM_USER_MFA_ENABLED"
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
+}
+
+resource "aws_config_config_rule" "vpc_flow_logs_enabled" {
+  name = "vpc-flow-logs-enabled"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "VPC_FLOW_LOGS_ENABLED"
   }
 
   depends_on = [aws_config_configuration_recorder_status.main]
