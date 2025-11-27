@@ -25,11 +25,7 @@ resource "aws_s3_bucket" "config_logs" {
   bucket = "aws-config-logs-${var.account_id}-${var.region}"
   acl = "private"
 
-  force_destroy = false
-
-  lifecycle {
-    prevent_destroy = true
-  }
+  force_destroy = true
 
   tags = {
     Project = "aws-compliance-auditor"
@@ -90,7 +86,7 @@ resource "aws_config_configuration_recorder" "main" {
 
 resource "aws_iam_role_policy_attachment" "aws_config_managed" {
     role = aws_iam_role.aws_config.name
-    policy_arn = "arn:aws:iam::aws:policy/service-role/AWSConfigRole"
+    policy_arn = "arn:aws:iam::aws:policy/service-role/AWS_ConfigRole"
 }
 
 resource "aws_s3_bucket_policy" "config_logs" {
@@ -151,58 +147,79 @@ resource "aws_config_configuration_recorder_status" "main" {
 #misconfigs
 
 resource "aws_config_config_rule" "s3_public_read_prohibited" {
-    name = "s3-bucket-public-read-prohibited"
-    source {
-        owner = "AWS"
-        source_identifier = "S3_BUCKET_PUBLIC_READ_PROHIBITED"
-    }
-    tags = {
-        Frameworks = "CIS-1.2.0, NIST-AC-3, ISO-27001-A.9.1"
-    }
+  name = "s3-bucket-public-read-prohibited"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "S3_BUCKET_PUBLIC_READ_PROHIBITED"
+  }
+
+  tags = {
+    Frameworks = "CIS-1.2.0,NIST-AC-3,ISO-27001-A.9.1"
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
 }
 
 resource "aws_config_config_rule" "s3_public_write_prohibited" {
+  name = "s3-bucket-public-write-prohibited"
 
-    name = "s3-bucket-public-write-prohibited"
-    source {
-        owner = "AWS"
-        source_identifier  = "S3_BUCKET_PUBLIC_WRITE_PROHIBITED"
-    }
-    tags = {
-        Frameworks = "CIS-1.2.0, NIST-SC-7, ISO-27001-A.13.1"
-    }
+  source {
+    owner             = "AWS"
+    source_identifier = "S3_BUCKET_PUBLIC_WRITE_PROHIBITED"
+  }
+
+  tags = {
+    Frameworks = "CIS-1.2.0,NIST-SC-7,ISO-27001-A.13.1"
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
 }
 
 resource "aws_config_config_rule" "restricted_ssh" {
+  name = "restricted-ssh"
 
-    name = "restricted-ssh"
+  source {
+    owner             = "AWS"
+    source_identifier = "INCOMING_SSH_DISABLED"
+  }
 
-    source {
-        owner = "AWS"
-        source_identifier = "INCOMING_SSH_DISABLED"
-    }
+  tags = {
+    Frameworks = "CIS-4.1,NIST-AC-4,ISO-27001-A.13.1"
+  }
 
-    tags = {
-        Frameworks = "CIS-4.1, NIS-AC-4, ISO-27001-A.13.1"
-    }
+  depends_on = [aws_config_configuration_recorder_status.main]
 }
 
 resource "aws_config_config_rule" "iam_access_keys_rotated" {
-    name = "iam-access-keys-rotated"
-    source {
-        owner = "AWS"
-        source_identifier = "ACCESS_KEYS_ROTATED"
-    }
-    input_parameters = jsonencode({
-        maxAccessKeyAge = "90" # this is in days
-    })
-    tags = {
-        Frameworks = "CIS-1.4,NIST-IA-5,ISO-27001-A.9.2"
-    }
+  name = "iam-access-keys-rotated"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "ACCESS_KEYS_ROTATED"
+  }
+
+  input_parameters = jsonencode({
+    maxAccessKeyAge = 90
+  })
+
+  tags = {
+    Frameworks = "CIS-1.4,NIST-IA-5,ISO-27001-A.9.2"
+  }
+
+  depends_on = [aws_config_configuration_recorder_status.main]
 }
+
+
 
 resource "aws_sns_topic" "compliance_alerts" {
     name = "compliance-alerts"
+}
+
+resource "aws_sns_topic_policy" "compliance_alerts" {
+    
+    arn = aws_sns_topic.compliance_alerts.arn
+
     policy = jsonencode({
         Version = "2012-10-17"
         Statement = [

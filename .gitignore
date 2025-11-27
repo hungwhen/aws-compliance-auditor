@@ -5,3 +5,23 @@ secret.auto.tfvars
 
 # Visual Studio junk
 .vs/
+
+# Terraform working directory
+.terraform/
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Ignore Terraform override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform lock info (not the lock file)
+.terraform.tfstate.lock.info
