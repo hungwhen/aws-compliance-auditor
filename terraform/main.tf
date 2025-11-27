@@ -177,7 +177,7 @@ resource "aws_config_config_rule" "restricted_ssh" {
 
     name = "restricted-ssh"
 
-    source = {
+    source {
         owner = "AWS"
         source_identifier = "INCOMING_SSH_DISABLED"
     }
@@ -203,6 +203,20 @@ resource "aws_config_config_rule" "iam_access_keys_rotated" {
 
 resource "aws_sns_topic" "compliance_alerts" {
     name = "compliance-alerts"
+    policy = jsonencode({
+        Version = "2012-20-17"
+        Statement = [
+            {
+                Sid = "AllowAWSConfigToPublish"
+                Effect = "Allow"
+                Principal = {
+                    Service = "config.amazonaws.com"
+                }
+                Action = "sns:Publish"
+                Resource = aws_sns_topic.compliance_alerts.arn
+            } 
+        ]
+    })
 }
 
 resource "aws_sns_topic_subscription" "compliance_email" {
@@ -211,7 +225,7 @@ resource "aws_sns_topic_subscription" "compliance_email" {
     endpoint = "thisisanemailillreplaceingitignoreandafilelater@gmail.com"
 }
 
-resource "awS_s3_bucket_versioning" "config_logs" {
+resource "aws_s3_bucket_versioning" "config_logs" {
     bucket = aws_s3_bucket.config_logs.id
     versioning_configuration {
         status = "Enabled"
@@ -238,4 +252,3 @@ resource "aws_s3_bucket_public_access_block" "config_logs" {
 }
 
 
-}
