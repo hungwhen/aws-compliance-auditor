@@ -204,7 +204,7 @@ resource "aws_config_config_rule" "iam_access_keys_rotated" {
 resource "aws_sns_topic" "compliance_alerts" {
     name = "compliance-alerts"
     policy = jsonencode({
-        Version = "2012-20-17"
+        Version = "2012-10-17"
         Statement = [
             {
                 Sid = "AllowAWSConfigToPublish"
